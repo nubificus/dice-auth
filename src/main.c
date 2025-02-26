@@ -116,7 +116,7 @@ int main() {
 				break;
 			}
 			#if DEBUG
-			printf("  root %d/%d does not verify client\n", i + 1, nr_roots);
+			printf("  Root %d/%d does not verify client\n", i + 1, nr_roots);
 			#endif
 		}
 
