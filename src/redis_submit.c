@@ -47,16 +47,19 @@ char *read_file(const char *filename, size_t *out_len) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc != 6) {
-		fprintf(stderr, "Usage: %s device_uuid path/to/root.pem device_type firmware_version firmware_type\n", argv[0]);
+	if (argc != 7) {
+		fprintf(stderr, "Usage: %s device_uuid path/to/root.pem "
+				"device_type firmware_version firmware_type "
+				"redis_ip\n", argv[0]);
 		return 1;
 	}
 
-	const char *device_uuid     = argv[1];
-	const char *pem_file_path   = argv[2];
-	const char *device_type     = argv[3];
-	const char *firmware_version= argv[4];
-	const char *firmware_type   = argv[5];
+	const char *device_uuid      = argv[1];
+	const char *pem_file_path    = argv[2];
+	const char *device_type      = argv[3];
+	const char *firmware_version = argv[4];
+	const char *firmware_type    = argv[5];
+	const char *redis_ip         = argv[6];
 
 	size_t cert_len = 0;
 	char *root_cert_value = read_file(pem_file_path, &cert_len);
@@ -65,9 +68,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	const char *hostname = "127.0.0.1";
 	int port = 6379;
-	redisContext *context = redisConnect(hostname, port);
+	redisContext *context = redisConnect(redis_ip, port);
 	if (context == NULL || context->err) {
 		if (context) {
 			fprintf(stderr, "Connection error: %s\n", context->errstr);
