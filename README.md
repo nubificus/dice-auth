@@ -22,7 +22,7 @@ make submit
 And now you can submit a new device entry to the database by running:
 
 ```bash
-./submit <uuid/key> <path-to-root.pem> <device-type> <firmware-version> <firmware-type>
+./submit <uuid/key> <path-to-root.pem> <device-type> <firmware-version> <firmware-type> <redis-db-IP>
 ```
 Now the entry contains a root certificate that will be used later to verify attestation incoming certificates.
 
