@@ -186,19 +186,15 @@ int der_root_from_uds(char *root, uint8_t *uds)
 }
 
 int main(int argc, char *argv[]) {
-	if (argc != 7) {
-		fprintf(stderr, "Usage: %s device_uuid unique_device_secret "
-				"device_type firmware_version firmware_type "
-				"redis_ip\n", argv[0]);
+	if (argc != 2 && argc != 3) {
+		fprintf(stderr, "Usage: %s unique_device_secret [redis_ip]\n", argv[0]);
 		return 1;
 	}
 
-	const char *device_uuid      = argv[1];
-	const char *mac_uds          = argv[2];
-	const char *device_type      = argv[3];
-	const char *firmware_version = argv[4];
-	const char *firmware_type    = argv[5];
-	const char *redis_ip         = argv[6];
+	const char *mac_uds  = argv[1];
+	const char *redis_ip = (argc == 3) ? argv[2] : "127.0.0.1";
+	if (argc == 2)
+		printf("Redis IP not provided.. Assuming localhost\n");
 
 	uint8_t mac[6] = { 0 };
 	size_t der_len;
@@ -239,15 +235,10 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	/* Build the Redis key (e.g., "device:<device-uuid>") */
-	char device_key[256];
-	snprintf(device_key, sizeof(device_key), "device:%s", device_uuid);
-
 	/* Use HSET to add the device entry */
 	redisReply *reply = redisCommand(context,
-		"HSET %s uuid %s root_cert %b device_type %s firmware_version %s firmware_type %s",
-		device_key, device_uuid, (char *) pem_root, pem_len,
-		device_type, firmware_version, firmware_type);
+		"HSET %s root_cert %b",
+		mac_uds, (char *) pem_root, pem_len);
 
 	free(pem_root);
 
@@ -261,7 +252,7 @@ int main(int argc, char *argv[]) {
 	freeReplyObject(reply);
 
 	/* Retrieve and print the stored root_cert to verify it was saved correctly */
-	reply = redisCommand(context, "HGET %s root_cert", device_key);
+	reply = redisCommand(context, "HGET %s root_cert", mac_uds);
 	if (reply && reply->type == REDIS_REPLY_STRING) {
 		printf("Retrieved root_cert:\n%s\n", reply->str);
 	} else {
