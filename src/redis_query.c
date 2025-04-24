@@ -34,8 +34,8 @@ char** redis_get_all_roots(int *nr_certs) {
 	return NULL;
 	}
 
-	/* Retrieve all keys matching "device:*" */
-	redisReply *keysReply = redisCommand(context, "KEYS device:*");
+	/* Retrieve all keys */
+	redisReply *keysReply = redisCommand(context, "KEYS *");
 	if (keysReply == NULL || keysReply->type != REDIS_REPLY_ARRAY) {
 		fprintf(stderr, "Error retrieving device keys.\n");
 		if(keysReply)
