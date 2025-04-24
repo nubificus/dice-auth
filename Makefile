@@ -23,7 +23,11 @@ DEL_SRC = src/redis_delete.c
 DEL_OBJ = redis_delete.o
 DEL_OUT = del
 
-CLEAN = $(AUTH_OUT) $(SUBMIT_OUT) $(DEL_OUT) *.o
+LS_SRC = src/redis_ls.c
+LS_OBJ = redis_ls.o
+LS_OUT = list
+
+CLEAN = $(AUTH_OUT) $(SUBMIT_OUT) $(DEL_OUT) $(LS_OUT) *.o
 
 dice_auth:
 	$(CC) $(C_FLAGS) $(AUTH_SRC) $(INCLUDE)
@@ -42,5 +46,13 @@ delete:
 	$(CC) $(C_FLAGS) $(DEL_SRC)
 	$(CC) -o $(DEL_OUT) $(DEL_OBJ) $(REDIS_LD)
 	rm -f *.o
+
+ls:
+	$(CC) $(C_FLAGS) $(LS_SRC)
+	$(CC) -o $(LS_OUT) $(LS_OBJ) $(REDIS_LD)
+	rm -rf *.o
+
+all: dice_auth submit delete ls
+
 clean:
 	rm -f $(CLEAN)
