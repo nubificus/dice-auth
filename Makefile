@@ -19,7 +19,11 @@ SUBMIT_SRC = $(DICE_SRC) src/redis_submit.c
 SUBMIT_OBJ = $(DICE_OBJ) redis_submit.o
 SUBMIT_OUT = submit
 
-CLEAN = $(AUTH_OUT) $(SUBMIT_OUT) *.o
+DEL_SRC = src/redis_delete.c
+DEL_OBJ = redis_delete.o
+DEL_OUT = del
+
+CLEAN = $(AUTH_OUT) $(SUBMIT_OUT) $(DEL_OUT) *.o
 
 dice_auth:
 	$(CC) $(C_FLAGS) $(AUTH_SRC) $(INCLUDE)
@@ -34,5 +38,9 @@ submit:
 	$(CC) -o $(SUBMIT_OUT) $(SUBMIT_OBJ) $(MBEDTLS_LD) $(REDIS_LD) $(OPENSSL_LD)
 	rm -f *.o
 
+delete:
+	$(CC) $(C_FLAGS) $(DEL_SRC)
+	$(CC) -o $(DEL_OUT) $(DEL_OBJ) $(REDIS_LD)
+	rm -f *.o
 clean:
 	rm -f $(CLEAN)
