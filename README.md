@@ -33,6 +33,11 @@ And now you can submit a new device entry to the database by running:
 ```
 Internally, `submit` will generate the Root certificate of the device using the unique device secret (the MAC address) and will submit a new entry to the Redis database. That entry will contain the certificate that will be used later to verify incoming attestation certificates.
 
+## `list` and `del`
+Correspondingly, you can also build the `list` and `del` operations, useful for listing the items of the database, or removing an item based on its UDS.
+
+Use `make ls` or `make delete` to build each one.
+
 ## Dice Auth Service
 
 This is a simple `http` server that authorizes incoming Attestation certificates. Actually, the server expects `POST` request that contain the attestation certificate, e.g:
