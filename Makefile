@@ -1,7 +1,6 @@
 C_FLAGS = -c -Wall
 
 INCLUDE = -Isrc/include
-
 MBEDTLS_INCLUDE = -Imbedtls/include
 MBEDTLS_LD = -Lmbedtls/library/ -lmbedtls -lmbedx509 -lmbedcrypto
 
@@ -29,15 +28,30 @@ LS_OUT = list
 
 CLEAN = $(AUTH_OUT) $(SUBMIT_OUT) $(DEL_OUT) $(LS_OUT) *.o
 
+MBEDTLS_LIBS = mbedtls/library/libmbedtls.a mbedtls/library/libmbedx509.a mbedtls/library/libmbedcrypto.a
+
+.PHONY: all clean dice_auth submit delete ls mbedtls run
+
+all: dice_auth submit delete ls
+
+mbedtls: $(MBEDTLS_LIBS)
+
+JOBS := $(shell nproc)
+
+$(MBEDTLS_LIBS):
+	@if [ ! -f mbedtls/library/libmbedtls.a ]; then \
+		echo "Initializing submodules..."; \
+		git submodule update --init --recursive; \
+	fi
+	@echo "Building mbedtls..."
+	$(MAKE) -C mbedtls -j$(JOBS)
+
 dice_auth:
 	$(CC) $(C_FLAGS) $(AUTH_SRC) $(INCLUDE)
 	$(CC) -o $(AUTH_OUT) $(AUTH_OBJ) $(OPENSSL_LD) $(REDIS_LD)
 	rm -f *.o
 
-run:
-	./auth 2>/dev/null
-
-submit:
+submit: mbedtls
 	$(CC) $(C_FLAGS) $(SUBMIT_SRC) $(INCLUDE) $(MBEDTLS_INCLUDE)
 	$(CC) -o $(SUBMIT_OUT) $(SUBMIT_OBJ) $(MBEDTLS_LD) $(REDIS_LD) $(OPENSSL_LD)
 	rm -f *.o
@@ -50,9 +64,11 @@ delete:
 ls:
 	$(CC) $(C_FLAGS) $(LS_SRC)
 	$(CC) -o $(LS_OUT) $(LS_OBJ) $(REDIS_LD)
-	rm -rf *.o
+	rm -f *.o
 
-all: dice_auth submit delete ls
+run:
+	./auth 2>/dev/null
 
 clean:
 	rm -f $(CLEAN)
+
