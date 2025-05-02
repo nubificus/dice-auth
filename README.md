@@ -27,6 +27,21 @@ And now you can submit a new device entry to the database by running:
 ```
 Internally, `submit` will generate the Root certificate of the device using the unique device secret (the MAC address) and will submit a new entry to the Redis database. That entry will contain the certificate that will be used later to verify incoming attestation certificates.
 
+### About DICE
+Based on Google's `open-dice`: https://github.com/google/open-dice
+
+In `src/` we use the following files of `open-dice/src/`:
+- `clear_memory.c`
+- `dice.c`
+- `mbedtls_ops.c`
+- `utils.c`
+
+In `src/include/dice/` we use the following files of `open-dice/include/dice/`:
+- `config.h`
+- `dice.h`
+- `ops.h`
+- `utils.h`
+
 ## `list` and `del`
 Correspondingly, you can also build the `list` and `del` operations, useful for listing the items of the database, or removing an item based on its UDS.
 
