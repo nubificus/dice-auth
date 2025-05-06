@@ -28,6 +28,75 @@ env:
   RUNNER_ARCH_MAP: '[{"amd64":"x86_64", "arm64":"aarch64", "arm":"armv7l"}]'
 
 jobs:
+  utils:
+    name: Build and upload utils to s3
+    runs-on: ${{ format('{0}-{1}', 'base-dind-2204', matrix.arch) }}
+    strategy:
+      matrix:
+        arch: ["arm64", "amd64"]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+         submodules: recursive
+
+      - name: Build utils
+        run: |
+                sudo apt-get update -y
+                sudo apt-get install -y build-essential libhiredis-dev libssl-dev python3 python3-pip
+                pip install jsonschema
+                make all_static
+                echo "LIST_UTIL_PATH=list" >> $GITHUB_ENV
+                echo "DEL_UTIL_PATH=del" >> $GITHUB_ENV
+                echo "SUBMIT_UTIL_PATH=submit" >> $GITHUB_ENV
+
+      - name: Set DEFAULT_UPPATH based on runner architecture
+        run: |
+          case "${{ runner.arch }}" in
+            X64)
+              arch=amd64
+              ;;
+            ARM64)
+              arch=arm64
+              ;;
+            *)
+              echo "Unknown architecture: ${{ runner.arch }}"
+              exit 1
+              ;;
+          esac
+          echo "DEFAULT_UPPATH=nbfc-assets/github/dice/auth/$arch" >> $GITHUB_ENV
+
+      - name: Upload list util to s3
+        uses: cloudkernels/minio-upload@v4.1
+        with:
+          url: https://s3.nubificus.co.uk
+          access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          local-path: ${{ env.LIST_UTIL_PATH }}
+          remote-path: ${{ env.DEFAULT_UPPATH }}
+          policy: 1
+
+      - name: Upload del util to s3
+        uses: cloudkernels/minio-upload@v4.1
+        with:
+          url: https://s3.nubificus.co.uk
+          access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          local-path: ${{ env.DEL_UTIL_PATH }}
+          remote-path: ${{ env.DEFAULT_UPPATH }}
+          policy: 1
+
+      - name: Upload submit util to s3
+        uses: cloudkernels/minio-upload@v4.1
+        with:
+          url: https://s3.nubificus.co.uk
+          access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          local-path: ${{ env.SUBMIT_UTIL_PATH }}
+          remote-path: ${{ env.DEFAULT_UPPATH }}
+          policy: 1
+
   build:
     name: Build Docker Image
     runs-on: ${{ format('{0}-{1}', 'base-dind-2204', matrix.arch) }}
