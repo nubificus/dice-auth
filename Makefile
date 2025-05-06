@@ -34,6 +34,8 @@ MBEDTLS_LIBS = mbedtls/library/libmbedtls.a mbedtls/library/libmbedx509.a mbedtl
 
 all: dice_auth submit delete ls
 
+all_static: submit_static delete_static ls_static
+
 mbedtls: $(MBEDTLS_LIBS)
 
 JOBS := $(shell nproc)
@@ -64,6 +66,21 @@ delete:
 ls:
 	$(CC) $(C_FLAGS) $(LS_SRC)
 	$(CC) -o $(LS_OUT) $(LS_OBJ) $(REDIS_LD)
+	rm -f *.o
+
+submit_static: mbedtls
+	$(CC) $(C_FLAGS) $(SUBMIT_SRC) $(INCLUDE) $(MBEDTLS_INCLUDE)
+	$(CC) -o $(SUBMIT_OUT) $(SUBMIT_OBJ) $(MBEDTLS_LD) $(REDIS_LD) $(OPENSSL_LD) -static
+	rm -f *.o
+
+delete_static:
+	$(CC) $(C_FLAGS) $(DEL_SRC)
+	$(CC) -o $(DEL_OUT) $(DEL_OBJ) $(REDIS_LD) -static
+	rm -f *.o
+
+ls_static:
+	$(CC) $(C_FLAGS) $(LS_SRC)
+	$(CC) -o $(LS_OUT) $(LS_OBJ) $(REDIS_LD) -static
 	rm -f *.o
 
 run:
