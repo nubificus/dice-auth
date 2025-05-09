@@ -14,6 +14,10 @@ AUTH_OUT = auth
 DICE_SRC = src/clear_memory.c src/dice.c src/mbedtls_ops.c src/utils.c
 DICE_OBJ = clear_memory.o dice.o mbedtls_ops.o utils.o
 
+GEN_SRC = $(DICE_SRC) src/gen_cert.c
+GEN_OBJ = $(DICE_OBJ) gen_cert.o
+GEN_OUT = gen_cert
+
 SUBMIT_SRC = $(DICE_SRC) src/redis_submit.c
 SUBMIT_OBJ = $(DICE_OBJ) redis_submit.o
 SUBMIT_OUT = submit
@@ -32,9 +36,9 @@ MBEDTLS_LIBS = mbedtls/library/libmbedtls.a mbedtls/library/libmbedx509.a mbedtl
 
 .PHONY: all clean dice_auth submit delete ls mbedtls run
 
-all: dice_auth submit delete ls
+all: dice_auth submit delete ls gen_cert
 
-all_static: submit_static delete_static ls_static
+all_static: submit_static delete_static ls_static gen_cert_static
 
 mbedtls: $(MBEDTLS_LIBS)
 
@@ -51,6 +55,11 @@ $(MBEDTLS_LIBS):
 dice_auth:
 	$(CC) $(C_FLAGS) $(AUTH_SRC) $(INCLUDE)
 	$(CC) -o $(AUTH_OUT) $(AUTH_OBJ) $(OPENSSL_LD) $(REDIS_LD)
+	rm -f *.o
+
+gen_cert: mbedtls
+	$(CC) $(C_FLAGS) $(GEN_SRC) $(INCLUDE) $(MBEDTLS_INCLUDE)
+	$(CC) -o $(GEN_OUT) $(GEN_OBJ) $(MBEDTLS_LD) $(OPENSSL_LD)
 	rm -f *.o
 
 submit: mbedtls
@@ -81,6 +90,11 @@ delete_static:
 ls_static:
 	$(CC) $(C_FLAGS) $(LS_SRC)
 	$(CC) -o $(LS_OUT) $(LS_OBJ) $(REDIS_LD) -static
+	rm -f *.o
+
+gen_cert_static:
+	$(CC) $(C_FLAGS) $(GEN_SRC) $(INCLUDE) $(MBEDTLS_INCLUDE)
+	$(CC) -o $(GEN_OUT) $(GEN_OBJ) $(MBEDTLS_LD) $(OPENSSL_LD)  -static
 	rm -f *.o
 
 run:
