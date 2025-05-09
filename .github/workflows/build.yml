@@ -50,6 +50,7 @@ jobs:
                 echo "LIST_UTIL_PATH=list" >> $GITHUB_ENV
                 echo "DEL_UTIL_PATH=del" >> $GITHUB_ENV
                 echo "SUBMIT_UTIL_PATH=submit" >> $GITHUB_ENV
+                echo "GEN_CERT_UTIL_PATH=gen_cert" >> $GITHUB_ENV
 
       - name: Set DEFAULT_UPPATH based on runner architecture
         run: |
@@ -94,6 +95,16 @@ jobs:
           access-key: ${{ secrets.AWS_ACCESS_KEY }}
           secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           local-path: ${{ env.SUBMIT_UTIL_PATH }}
+          remote-path: ${{ env.DEFAULT_UPPATH }}
+          policy: 1
+
+      - name: Upload gen_cert util to s3
+        uses: cloudkernels/minio-upload@v4.1
+        with:
+          url: https://s3.nubificus.co.uk
+          access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          local-path: ${{ env.GEN_CERT_UTIL_PATH }}
           remote-path: ${{ env.DEFAULT_UPPATH }}
           policy: 1
 
