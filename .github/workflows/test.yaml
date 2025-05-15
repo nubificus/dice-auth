@@ -5,6 +5,7 @@ on:
     workflows: ["Build DICE AUTH tools and Push Docker Image"]  # name of the previous workflow
     types:
       - completed
+    branches: [feat_test_other]
   workflow_dispatch:
 
 concurrency:

@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
         out_mode output_mode;
 
         if (argc == 3 && strcmp(argv[2], "--pem") == 0) {
-                output_mode = DICE_PEM;
+                output_mode = DICE_DER;
         } else {
                 output_mode = DICE_DER;
         }
