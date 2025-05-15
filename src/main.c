@@ -111,6 +111,7 @@ int main() {
 		}
 
 		for (i = 0; i < nr_roots; ++i) {
+			printf("Trying out root[%d]\n", i);
 			if (dice_auth(roots[i], cert_body) == 0) {
 				authorized = true;
 				break;

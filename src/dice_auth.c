@@ -95,6 +95,8 @@ int dice_auth(const char *ca_pem, const char *cert_pem) {
 	EVP_cleanup();
 	ERR_free_strings();
 
+	fflush(stdout);
+	fflush(stderr);
 	return (ret == 1) ? 0 : -1;
 }
 

@@ -1,4 +1,4 @@
-C_FLAGS = -c -Wall
+C_FLAGS = -c -Wall -DDEBUG
 
 INCLUDE = -Isrc/include
 MBEDTLS_INCLUDE = -Imbedtls/include
