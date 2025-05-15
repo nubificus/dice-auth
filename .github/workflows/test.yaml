@@ -1,0 +1,100 @@
+name: Test Attestation Logic
+
+on:
+  workflow_run:
+    workflows: ["Build DICE AUTH tools and Push Docker Image"]  # name of the previous workflow
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  attestation-test:
+    runs-on: [base-dind-2204-amd64]
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+      dice-auth:
+        image: harbor.nbfc.io/nubificus/dice-auth:latest
+        env:
+          REDIS_HOST: redis
+        ports:
+          - 8000:8000
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodule: recursive
+       
+      - name: Install required tools
+        run: |
+          sudo apt update && sudo apt-get install -y curl jq libhiredis-dev libssl-dev python3-pip
+          pip3 install jsonschema
+
+      #- name: Build dice-auth
+      #  run: |
+      #    make
+
+      #- name: Start dice-auth service in background
+      #  run: |
+      #    nohup ./auth > dice-auth.log 2>&1 &
+      #    sleep 5
+
+      - name: Fetch tools
+        run: |
+          wget https://s3.nbfc.io/nbfc-assets/github/dice/auth/amd64/submit && chmod +x submit
+          wget https://s3.nbfc.io/nbfc-assets/github/dice/auth/amd64/list && chmod +x list
+          wget https://s3.nbfc.io/nbfc-assets/github/dice/auth/amd64/gen_cert && chmod +x gen_cert
+          wget https://s3.nbfc.io/nbfc-assets/github/dice/auth/amd64/del && chmod +x del
+
+      - name: Generate a valid certificate
+        run: |
+          ./gen_cert 00:11:22:33:44:55 > cert.der
+          ./gen_cert 00:11:22:33:44:55 --pem > cert.pem
+          
+      - name: List certificates (should be empty)
+        run: |
+          ./list
+      
+      - name: Try to verify (should fail)
+        run: |
+          OUT=$(curl -X POST http://127.0.0.1:8000 -H "Content-Type: text/plain" --data-binary @cert.pem)
+          echo $OUT | grep Invalid
+
+      - name: Submit cert
+        run: |
+          ./submit 00:11:22:33:44:55
+
+      - name: List certificates (should have something)
+        run: |
+          ./list
+
+      - name: Try to verify (should succeed)
+        run: |
+          OUT=$(curl -X POST http://127.0.0.1:8000 -H "Content-Type: text/plain" --data-binary @cert.pem)
+          echo $OUT | grep OK
+
+      - name: Del cert
+        run: |
+          ./del 00:11:22:33:44:55
+
+      - name: List certificates (should be empty)
+        run: |
+          ./list
+
+      - name: Try to verify (should fail)
+        run: |
+          OUT=$(curl -X POST http://127.0.0.1:8000 -H "Content-Type: text/plain" --data-binary @cert.pem)
+          echo $OUT | grep Invalid
+
+      - name: Print logs from dice-auth
+        if: failure()
+        run: |
+          docker ps -a
+          docker logs $(docker ps -q --filter "ancestor=harbor.nbfc.io/nubificus/dice-auth:latest")
