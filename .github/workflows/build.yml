@@ -1,5 +1,5 @@
 
-name: Build and Push Docker Image
+name: Build DICE AUTH tools and Push Docker Image
 
 on:
   push:
